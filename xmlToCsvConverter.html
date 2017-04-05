@@ -1,0 +1,82 @@
+<html>
+    <head>
+        <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'></script>
+        <script type='text/javascript' src="https://cdn.rawgit.com/abdmob/x2js/master/xml2json.js"></script>
+        <title>Custom XML to CSV Converter</title>
+    </head>
+    <body>
+        <h1>Custom XML to CSV Converter</h1>
+        <p>You can select multiple files</p>
+        <input type="file" id="file-input" multiple/>
+        <h3>Content of the files:</h3>
+        <button onClick="downloadCsv()">Download</button>
+        <div>
+            <h4 style="margin-bottom: 0">Output:</h4>
+            <pre id="csvAreaBody" style="background-color: #010101;color:#fff;min-height: 500px;overflow-x: scroll"></pre>
+        </div>
+        <button onClick="window.location.href=window.location.href">Clear</button>
+        <script>
+            //Add your header CSV here
+            var header = 'Title|Distributor';
+            
+            var rows = header + '\n';
+            function displayContents(data) {
+                var xml = "";
+
+                if (data !== null && data.trim().length !== 0) {
+
+                    try {
+                        xml = $.parseXML(data);
+                    } catch (e) {
+                        throw e;
+                    }
+
+                    var x2js = new X2JS();
+
+                    data = x2js.xml2json(xml);
+                    
+                    var array = $.map(data, function (value, index) {
+                        return [value];
+                    });
+
+                    for (var i = 0; i < array.length; i++) {
+                        console.log(array[i])
+                        //Parse your XML here, open your browser inspector and see the console   
+                        var row =
+                                array[i]['movie-title'].name.toString() + '|' +
+                                array[i].distributor.name.toString();
+                        
+                        
+                                
+
+                        rows = rows + row + '\n';
+                    }
+                    var elem = document.getElementById('csvAreaBody');
+                    elem.innerHTML = rows
+                }
+            }
+
+            function readSingleFile(e) {
+                for (var i = 0; i < e.target.files.length; i++) {
+                    var file = e.target.files[i];
+                    if (!file) {
+                        return;
+                    }
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var contents = e.target.result;
+                        displayContents(contents);
+                    };
+                    reader.readAsText(file);
+                }
+            }
+
+            function downloadCsv() {
+                window.open("data:text/csv;charset=utf-8," + escape(rows), 'Download');
+            }
+
+            document.getElementById('file-input')
+                    .addEventListener('change', readSingleFile, false);
+        </script>
+    </body>
+</html>
